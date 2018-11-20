@@ -1,31 +1,30 @@
 import { Value as JSONValue } from 'json-typescript';
 
-export type TMeta = { [k: string]: JSONValue };
-export type TDict<K extends string, V> = { [KK in K]: V };
+export type Meta = { [k: string]: JSONValue };
+export type Dict<K extends string, V> = { [KK in K]: V };
 
-export interface IResourceIdentifier {
+export interface ResourceIdentifier {
   id: string | null;
   lid?: string;
   type: string;
   // json-api spec does not allow for `null` here
   //   but we do for allowing users to `reset` or
   //   otherwise `empty` their meta cache
-  meta?: TMeta | null;
+  meta?: Meta | null;
 }
 
-export interface IRecordIdentifier extends IResourceIdentifier {
+export interface RecordIdentifier extends ResourceIdentifier {
   // we are more strict that ResourceIdentifier in that `lid` MUST be present
   lid: string;
-  id: string | null;
-  type: string;
-  meta: TMeta | null;
+  // we always have a meta property, null if "none"
+  meta: Meta | null;
 }
 
-export interface IDeprecatedResourceIdentifier extends IResourceIdentifier {
+export interface LegacyResourceIdentifier extends ResourceIdentifier {
   clientId?: string;
 }
 
-export interface IDeprecatedRecordIdentifier extends IRecordIdentifier {
+export interface LegacyRecordIdentifier extends RecordIdentifier {
   clientId?: string;
   toString(): string;
 }

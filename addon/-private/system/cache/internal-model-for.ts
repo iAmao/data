@@ -1,10 +1,10 @@
 import InternalModel from '../model/internal-model';
 import Store from '../store';
 import { recordIdentifiersFor } from './record-identifier';
-import { IDeprecatedRecordIdentifier } from 'ember-data/-private/types';
+import { LegacyRecordIdentifier } from 'ember-data/-private/types';
 
 type TStore = InstanceType<typeof Store>;
-type TIdentifier = IDeprecatedRecordIdentifier;
+type TIdentifier = LegacyRecordIdentifier;
 
 const INTERNAL_MODEL_CACHE = new WeakMap<TIdentifier, InternalModel>();
 const IM_TYPES = Object.create(null);
@@ -29,7 +29,7 @@ export function internalModelsFor(store: TStore, type: string): InternalModel[] 
 }
 
 export function setInternalModelFor(
-  identifier: IDeprecatedRecordIdentifier,
+  identifier: LegacyRecordIdentifier,
   internalModel: InternalModel | null
 ): void {
   if (internalModel === null) {

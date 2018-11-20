@@ -1,44 +1,38 @@
 import Store from '../store';
 import coerceId from '../coerce-id';
 import { DEBUG } from '@glimmer/env';
-import {
-  TDict,
-  // IResourceIdentifier,
-  // IRecordIdentifier,
-  IDeprecatedRecordIdentifier,
-  IDeprecatedResourceIdentifier,
-} from '../../types';
+import { Dict, LegacyRecordIdentifier, LegacyResourceIdentifier } from '../../types';
 import { assert } from '@ember/debug';
 
 type TStore = InstanceType<typeof Store>;
-type TmodelName = string;
-type TclientId = string;
-type Tid = string;
-type TIdentifier = IDeprecatedRecordIdentifier;
-type TResource = IDeprecatedResourceIdentifier;
+type ModelName = string;
+type ClientId = string;
+type Id = string;
 
-interface IKeyOptions {
-  lid: TDict<TclientId, TIdentifier>;
-  id: TDict<Tid, TIdentifier>;
-  _allIdentifiers: TIdentifier[];
+interface KeyOptions {
+  lid: Dict<ClientId, LegacyRecordIdentifier>;
+  id: Dict<Id, LegacyRecordIdentifier>;
+  _allIdentifiers: LegacyRecordIdentifier[];
 }
 
-type TTypeMap = TDict<TmodelName, IKeyOptions>;
+type TypeMap = Dict<ModelName, KeyOptions>;
 
 let CLIENT_ID = 0;
 let DEBUG_MAP;
 
 if (DEBUG) {
-  DEBUG_MAP = new WeakMap<TIdentifier, TIdentifier>();
+  DEBUG_MAP = new WeakMap<LegacyRecordIdentifier, LegacyRecordIdentifier>();
 }
 
 function generateLid(): string {
   return `@ember-data:lid-${CLIENT_ID++}`;
 }
 
-const STORE_MAP = new WeakMap<TStore, TTypeMap>();
+const STORE_MAP = new WeakMap<TStore, TypeMap>();
 
-function makeRecordIdentifier(resourceIdentifier: TResource): TIdentifier {
+function makeRecordIdentifier(
+  resourceIdentifier: LegacyResourceIdentifier
+): LegacyRecordIdentifier {
   let lid = coerceId(resourceIdentifier.lid);
 
   // TODO we may not want to fall back to ID if we want a global lookup of lid
@@ -47,7 +41,7 @@ function makeRecordIdentifier(resourceIdentifier: TResource): TIdentifier {
   // lid = lid === null ? coerceId(resourceIdentifier.id) : lid;
   lid = lid === null ? generateLid() : lid;
 
-  let recordIdentifier: TIdentifier = {
+  let recordIdentifier: LegacyRecordIdentifier = {
     lid,
     id: coerceId(resourceIdentifier.id),
     clientId: lid,
@@ -58,7 +52,7 @@ function makeRecordIdentifier(resourceIdentifier: TResource): TIdentifier {
   if (DEBUG) {
     // we enforce immutability in dev
     //  but preserve our ability to do controlled updates to the reference
-    let wrapper: TIdentifier = {
+    let wrapper: LegacyRecordIdentifier = {
       get lid() {
         return recordIdentifier.lid;
       },
@@ -89,8 +83,8 @@ function makeRecordIdentifier(resourceIdentifier: TResource): TIdentifier {
 }
 
 function performRecordIdentifierUpdate(
-  identifier: TIdentifier,
-  { meta, type, id, lid }: TResource
+  identifier: LegacyRecordIdentifier,
+  { meta, type, id, lid }: LegacyResourceIdentifier
 ) {
   if (DEBUG) {
     let wrapper = identifier;
@@ -152,8 +146,8 @@ function performRecordIdentifierUpdate(
  */
 export function updateRecordIdentifier(
   store: TStore,
-  identifier: TIdentifier,
-  resourceIdentifier: TResource
+  identifier: LegacyRecordIdentifier,
+  resourceIdentifier: LegacyResourceIdentifier
 ): void {
   if (DEBUG) {
     assert(
@@ -186,20 +180,20 @@ export function updateRecordIdentifier(
 }
 
 function getLookupBucket(store: TStore, type) {
-  let typeMap: TTypeMap | undefined = STORE_MAP.get(store);
+  let typeMap: TypeMap | undefined = STORE_MAP.get(store);
 
   if (typeMap === undefined) {
-    typeMap = Object.create(null) as TTypeMap;
+    typeMap = Object.create(null) as TypeMap;
     STORE_MAP.set(store, typeMap);
   }
 
-  let keyOptions: IKeyOptions = typeMap[type];
+  let keyOptions: KeyOptions = typeMap[type];
   if (keyOptions === undefined) {
     keyOptions = {
       lid: Object.create(null),
       id: Object.create(null),
       _allIdentifiers: [],
-    } as IKeyOptions;
+    } as KeyOptions;
     typeMap[type] = keyOptions;
   }
 
@@ -214,7 +208,10 @@ function isNonEmptyString(str?: string | null): str is string {
   return typeof str === 'string' && str.length > 0;
 }
 
-export function createRecordIdentifier(store: TStore, resourceIdentifier: TResource): TIdentifier {
+export function createRecordIdentifier(
+  store: TStore,
+  resourceIdentifier: LegacyResourceIdentifier
+): LegacyRecordIdentifier {
   let keyOptions = getLookupBucket(store, resourceIdentifier.type);
   let identifier = makeRecordIdentifier(resourceIdentifier);
 
@@ -237,7 +234,7 @@ export function createRecordIdentifier(store: TStore, resourceIdentifier: TResou
   return identifier;
 }
 
-export function forgetRecordIdentifier(store: TStore, identifier: TIdentifier) {
+export function forgetRecordIdentifier(store: TStore, identifier: LegacyRecordIdentifier) {
   let keyOptions = getLookupBucket(store, identifier.type);
   if (identifier.id !== null) {
     delete keyOptions.id[identifier.id];
@@ -250,11 +247,11 @@ export function forgetRecordIdentifier(store: TStore, identifier: TIdentifier) {
 
 export function recordIdentifierFor(
   store: TStore,
-  resourceIdentifier: TResource
-): TIdentifier | null {
+  resourceIdentifier: LegacyResourceIdentifier
+): LegacyRecordIdentifier | null {
   let clientId = coerceId(resourceIdentifier.clientId);
   let keyOptions = getLookupBucket(store, resourceIdentifier.type);
-  let identifier: TIdentifier | null = null;
+  let identifier: LegacyRecordIdentifier | null = null;
   let lid = coerceId(resourceIdentifier.lid);
 
   if (lid === null && clientId !== null) {
