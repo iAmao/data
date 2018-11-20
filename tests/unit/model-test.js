@@ -149,7 +149,7 @@ module('unit/model - Model', function(hooks) {
         'the deleted person is not removed from store (no unload called)'
       );
 
-      assert.expectAssertion(() => {
+      assert.throws(() => {
         set(record, 'isArchived', true);
       }, /Attempted to set 'isArchived' to 'true' on the deleted record <person:1>/);
 

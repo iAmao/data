@@ -12,7 +12,7 @@ import {
   relatedTypesDescriptor,
   relationshipsDescriptor,
 } from '../relationships/ext';
-import recordDataFor from '../record-data-for';
+import { setRecordDataFor, getRecordDataFor } from './record-data-map';
 import Ember from 'ember';
 import InternalModel from './internal-model';
 import RootState from './states';
@@ -1147,7 +1147,7 @@ Object.defineProperty(Model.prototype, 'data', {
         until: '3.9',
       }
     );
-    return recordDataFor(this)._data;
+    return getRecordDataFor(this)._data;
   },
 });
 
@@ -1195,8 +1195,8 @@ if (DEBUG) {
   };
 
   Model.reopen({
-    init() {
-      this._super(...arguments);
+    init(createArgs) {
+      this._super(createArgs);
 
       if (!this._internalModel) {
         throw new EmberError(
@@ -1212,6 +1212,13 @@ if (DEBUG) {
           `'_internalModel' is a reserved property name on instances of classes extending Model. Please choose a different property name for ${this.constructor.toString()}`
         );
       }
+
+      // with DS.Model we guarantee that `attr` `belongsTo` and `hasMany` can be accessed
+      //  during `init` once `_super` has been called. This is necessary so that the above
+      //  can be true. Custom Model classes that also want this guarantee will need to do
+      //  the same.
+      let recordData = getRecordDataFor(createArgs);
+      setRecordDataFor(this, recordData);
 
       if (
         !isDefaultEmptyDescriptor(this, 'recordData') ||
