@@ -255,7 +255,6 @@ export function recordIdentifierFor(
   let lid = coerceId(resourceIdentifier.lid);
 
   if (lid === null && clientId !== null) {
-    console.trace('Deprecated use of clientId');
     lid = clientId;
     resourceIdentifier.lid = clientId;
   }
