@@ -160,10 +160,10 @@ export function updateRecordIdentifier(
 
     if (id !== null && id !== newId && newId !== null) {
       let keyOptions = getLookupBucket(store, identifier.type);
-      let eid = keyOptions.id[newId];
-      if (eid !== undefined) {
+      let existingIdentifier = keyOptions.id[newId];
+      if (existingIdentifier !== undefined) {
         throw new Error(
-          `Attempted to update the 'id' for the RecordIdentifier '${identifier}' to '${newId}', but that id is already in use by '${eid}'`
+          `Attempted to update the 'id' for the RecordIdentifier '${identifier}' to '${newId}', but that id is already in use by '${existingIdentifier}'`
         );
       }
     }
